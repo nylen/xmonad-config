@@ -20,6 +20,7 @@ import XMonad.Config.Gnome
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.FadeInactive(isUnfocused,fadeOutLogHook)
 import XMonad.Hooks.ManageHelpers(isFullscreen,doFullFloat)
+import XMonad.Hooks.SetWMName
 import XMonad.Util.EZConfig
 
 
@@ -47,6 +48,8 @@ main = do
   xmonad $ gnomeConfig
     { modMask = myModMask
     , logHook = myLogHook dbusClient >> logHook gnomeConfig
+    -- http://www.haskell.org/haskellwiki/Xmonad/Frequently_asked_questions#Problems_with_Java_applications.2C_Applet_java_console
+    , startupHook = startupHook gnomeConfig >> setWMName "LG3D"
     }
     `changeModKey` (shiftMask, myShiftMask)
     `changeKeys`
