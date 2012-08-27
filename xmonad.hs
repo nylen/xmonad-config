@@ -15,7 +15,6 @@ import Graphics.Rendering.Pango.Markup(markSpan,SpanAttribute(..))
 import Graphics.Rendering.Pango.Layout(escapeMarkup)
 
 import XMonad
-import XMonad.Actions.UpdatePointer(updatePointer,PointerPosition(TowardsCentre))
 import XMonad.Config.Gnome
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.FadeInactive(isUnfocused,fadeOutLogHook)
@@ -92,7 +91,6 @@ myPrettyPrinter client = defaultPP
 myLogHook :: Client -> X ()
 myLogHook client = do
     dynamicLogWithPP (myPrettyPrinter client)
-    updatePointer (TowardsCentre 0.6 0.6)
     fadeOutLogHook fadeRules
 
 fadeRules :: Query Rational
