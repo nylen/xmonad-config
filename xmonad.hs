@@ -1,14 +1,13 @@
+import qualified Codec.Binary.UTF8.String as UTF8
+
 import Control.Monad(liftM)
 
 import Data.Bits
 import Data.String(fromString)
 import qualified Data.Map as M
-import qualified Data.Text.Lazy.Encoding as TL(decodeUtf8)
 
-import DBus.Bus(getSessionBus)
-import DBus.Client(send_,newClient,runDBus,Client,DBus)
-import DBus.Message(Signal(..))
-import DBus.Types(toVariant)
+import qualified DBus as D
+import qualified DBus.Client as D
 
 import Graphics.Rendering.Pango.Enums(Weight(..))
 import Graphics.Rendering.Pango.Markup(markSpan,SpanAttribute(..))
@@ -44,10 +43,11 @@ myShiftMask    = mod1Mask
 myModShiftMask = myModMask .|. myShiftMask
 
 main = do
-  dbusClient <- newClient =<< getSessionBus
+  dbus <- D.connectSession
+  getWellKnownName dbus
   xmonad $ mateConfig
     { modMask = myModMask
-    , logHook = myLogHook dbusClient >> logHook mateConfig
+    , logHook = dynamicLogWithPP (prettyPrinter dbus)
     -- http://www.haskell.org/haskellwiki/Xmonad/Frequently_asked_questions#Problems_with_Java_applications.2C_Applet_java_console
     , startupHook = startupHook mateConfig >> setWMName "LG3D"
     }
@@ -59,19 +59,11 @@ main = do
     , ((myModShiftMask, xK_c), (myModMask,      xK_q)) -- %! Close the focused window
     ]
 
--- LogHook --
-sendUpdateSignal :: String -> DBus ()
-sendUpdateSignal output = send_ Signal
-    { signalPath = fromString "/org/xmonad/Log"
-    , signalMember = fromString "Update"
-    , signalInterface = fromString "org.xmonad.Log"
-    , signalDestination = Nothing
-    , signalBody = [toVariant (TL.decodeUtf8 (fromString output))]
-    }
+-- Log hook (for xmonad-log-applet) --
 
-myPrettyPrinter :: Client -> PP
-myPrettyPrinter client = defaultPP
-    { ppOutput = runDBus client . sendUpdateSignal
+prettyPrinter :: D.Client -> PP
+prettyPrinter client = defaultPP
+    { ppOutput = dbusOutput client
     , ppTitle = escapeMarkup
     , ppCurrent = markSpan
         [ FontWeight WeightBold
@@ -89,15 +81,15 @@ myPrettyPrinter client = defaultPP
         ]
     }
 
-myLogHook :: Client -> X ()
-myLogHook client = do
-    dynamicLogWithPP (myPrettyPrinter client)
-    fadeOutLogHook fadeRules
+getWellKnownName :: D.Client -> IO ()
+getWellKnownName client = do
+    D.requestName client (D.busName_ "org.xmonad.Log")
+                  [D.nameAllowReplacement, D.nameReplaceExisting, D.nameDoNotQueue]
+    return ()
 
-fadeRules :: Query Rational
-fadeRules = do
-    fullscreen <- isFullscreen
-    focused <- liftM not isUnfocused
-    return $ case () of _ | fullscreen -> 1
-                          | focused -> 0.85
-                          | otherwise -> 0.8
+dbusOutput :: D.Client -> String -> IO ()
+dbusOutput client str = do
+    let signal = (D.signal (D.objectPath_ "/org/xmonad/Log") (D.interfaceName_ "org.xmonad.Log") (D.memberName_ "Update")) {
+        D.signalBody = [D.toVariant (UTF8.decodeString str)]
+    }
+    D.emit client signal
