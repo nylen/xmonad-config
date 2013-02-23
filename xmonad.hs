@@ -15,12 +15,13 @@ import Graphics.Rendering.Pango.Markup(markSpan,SpanAttribute(..))
 import Graphics.Rendering.Pango.Layout(escapeMarkup)
 
 import XMonad
-import XMonad.Config.Gnome
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.FadeInactive(isUnfocused,fadeOutLogHook)
 import XMonad.Hooks.ManageHelpers(isFullscreen,doFullFloat)
 import XMonad.Hooks.SetWMName
 import XMonad.Util.EZConfig
+
+import MateConfig
 
 
 changeBits :: (Bits a) => a -> a -> a -> a
@@ -44,11 +45,11 @@ myModShiftMask = myModMask .|. myShiftMask
 
 main = do
   dbusClient <- newClient =<< getSessionBus
-  xmonad $ gnomeConfig
+  xmonad $ mateConfig
     { modMask = myModMask
-    , logHook = myLogHook dbusClient >> logHook gnomeConfig
+    , logHook = myLogHook dbusClient >> logHook mateConfig
     -- http://www.haskell.org/haskellwiki/Xmonad/Frequently_asked_questions#Problems_with_Java_applications.2C_Applet_java_console
-    , startupHook = startupHook gnomeConfig >> setWMName "LG3D"
+    , startupHook = startupHook mateConfig >> setWMName "LG3D"
     }
     `changeModKey` (shiftMask, myShiftMask)
     `changeKeys`
