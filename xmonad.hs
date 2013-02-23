@@ -61,19 +61,21 @@ main = do
 
 -- Log hook (for xmonad-log-applet) --
 
+-- Colors from /etc/X11/rgb.txt
+-- (http://developer.gnome.org/pygtk/2.22/class-pangocolor.html)
 prettyPrinter :: D.Client -> PP
 prettyPrinter client = defaultPP
     { ppOutput = dbusOutput client
     , ppTitle = escapeMarkup
     , ppCurrent = markSpan
         [ FontWeight WeightBold
-        , FontForeground "green"
+        , FontForeground "sea green"
         ] . escapeMarkup
     , ppVisible = const ""
     , ppHidden = escapeMarkup
     , ppLayout = markSpan
         [ FontWeight WeightBold
-        , FontForeground "white"
+        , FontForeground "gray50"
         ] . escapeMarkup
     , ppUrgent = markSpan
         [ FontWeight WeightBold
