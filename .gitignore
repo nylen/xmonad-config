@@ -1,3 +1,4 @@
 *
 !.gitignore
 !*.hs
+!lib
