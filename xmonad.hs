@@ -14,11 +14,14 @@ import Graphics.Rendering.Pango.Markup(markSpan,SpanAttribute(..))
 import Graphics.Rendering.Pango.Layout(escapeMarkup)
 
 import XMonad
+import XMonad.Config.Desktop
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.FadeInactive(isUnfocused,fadeOutLogHook)
 import XMonad.Hooks.ManageHelpers(isFullscreen,doFullFloat)
 import XMonad.Hooks.SetWMName
 import XMonad.Util.EZConfig
+
+import CustomGrid
 
 import MateConfig
 
@@ -42,12 +45,15 @@ myModMask      = mod4Mask
 myShiftMask    = mod1Mask
 myModShiftMask = myModMask .|. myShiftMask
 
+myLayout = desktopLayoutModifiers $ Full ||| CustomGrid
+
 main = do
   dbus <- D.connectSession
   getWellKnownName dbus
   xmonad $ mateConfig
     { modMask = myModMask
     , logHook = dynamicLogWithPP (prettyPrinter dbus)
+    , layoutHook = myLayout
     -- http://www.haskell.org/haskellwiki/Xmonad/Frequently_asked_questions#Problems_with_Java_applications.2C_Applet_java_console
     , startupHook = startupHook mateConfig >> setWMName "LG3D"
     }
