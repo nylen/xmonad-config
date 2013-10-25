@@ -3,6 +3,7 @@ import qualified Codec.Binary.UTF8.String as UTF8
 import Control.Monad(liftM)
 
 import Data.Bits
+import Data.Ratio((%))
 import Data.String(fromString)
 import qualified Data.Map as M
 
@@ -19,6 +20,8 @@ import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.FadeInactive(isUnfocused,fadeOutLogHook)
 import XMonad.Hooks.ManageHelpers(isFullscreen,doFullFloat)
 import XMonad.Hooks.SetWMName
+import XMonad.Layout.IM
+import XMonad.Layout.LayoutModifier
 import XMonad.Util.EZConfig
 
 import CustomGrid
@@ -45,15 +48,20 @@ myModMask      = mod4Mask
 myShiftMask    = mod1Mask
 myModShiftMask = myModMask .|. myShiftMask
 
-myLayout = desktopLayoutModifiers $ Full ||| CustomGrid
+-- Add a layout modifier to force the Tabs Outliner window to the left
+myWithIM :: LayoutClass l a => l a -> ModifiedLayout AddRoster l a
+myWithIM l =
+  withIM (1%6) (Resource "crx_eggkanocgddhmamlbiijnphhppkpkmkl") l
+
+myLayoutHook = desktopLayoutModifiers $ myWithIM $ Full ||| CustomGrid
 
 main = do
   dbus <- D.connectSession
   getWellKnownName dbus
   xmonad $ mateConfig
-    { modMask = myModMask
-    , logHook = dynamicLogWithPP (prettyPrinter dbus)
-    , layoutHook = myLayout
+    { modMask     = myModMask
+    , logHook     = dynamicLogWithPP (prettyPrinter dbus)
+    , layoutHook  = myLayoutHook
     -- http://www.haskell.org/haskellwiki/Xmonad/Frequently_asked_questions#Problems_with_Java_applications.2C_Applet_java_console
     , startupHook = startupHook mateConfig >> setWMName "LG3D"
     }
